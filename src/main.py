@@ -1,10 +1,16 @@
 import cv2
+import json
 from ultralytics import YOLO
 
 video_path = "test.mp4"
 model = YOLO("yolov8s.pt")
 cap = cv2.VideoCapture(video_path)
-alert_zone = (930, 400, 1250, 700)
+
+
+with open("restricted_zones.json", "r", encoding="utf-8") as file:
+    data = json.load(file)
+    alert_zone = tuple(data['сordinates'])
+
 
 
 def alert(px, py, rect):
