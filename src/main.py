@@ -1,9 +1,15 @@
 import cv2
 import json
+import time
+
 from ultralytics import YOLO
+
 
 video_path = "test.mp4"
 model = YOLO("yolov8s.pt")
+last_time = 0.0
+ALERT_DURATION = 3.0
+
 cap = cv2.VideoCapture(video_path)
 
 
@@ -45,15 +51,19 @@ def main():
                 cx = int((x1b + x2b) / 2)
                 cy = int((y1b + y2b) / 2)
 
-                x1, y1, x2, y2 = alert_zone
-                cv2.rectangle(annotated_frame,  (x1, y1), (x2, y2), (0, 0, 255), 2)
                 cv2.circle(annotated_frame, (cx, cy), 4, (255, 0, 0), -1)
 
                 if alert(cx, cy, alert_zone):
-                    cv2.putText(annotated_frame, "ALERT!", (50, 50),
-                                cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
+                    global last_time
+                    last_time = time.time()
                     print("ALERT!")
 
+            if time.time() - last_time < ALERT_DURATION:
+                cv2.putText(annotated_frame, "ALERT!", (50, 50),
+                            cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
+
+        x1, y1, x2, y2 = alert_zone
+        cv2.rectangle(annotated_frame, (x1, y1), (x2, y2), (0, 0, 255), 2)
         cv2.imshow("Video", annotated_frame)
         if cv2.waitKey(25) & 0xFF == 27:
             break
