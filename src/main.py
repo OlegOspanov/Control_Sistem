@@ -4,11 +4,12 @@ import time
 
 from ultralytics import YOLO
 
+from alert_state import AlertState
+
 
 video_path = "test.mp4"
 model = YOLO("yolov8s.pt")
-last_time = 0.0
-ALERT_DURATION = 3.0
+alert_state = AlertState(duration=3.0)
 
 cap = cv2.VideoCapture(video_path)
 
@@ -16,7 +17,6 @@ cap = cv2.VideoCapture(video_path)
 with open("restricted_zones.json", "r", encoding="utf-8") as file:
     data = json.load(file)
     alert_zone = tuple(data['сordinates'])
-
 
 
 def alert(px, py, rect):
@@ -54,11 +54,10 @@ def main():
                 cv2.circle(annotated_frame, (cx, cy), 4, (255, 0, 0), -1)
 
                 if alert(cx, cy, alert_zone):
-                    global last_time
-                    last_time = time.time()
+                    alert_state.trigger()
                     print("ALERT!")
 
-            if time.time() - last_time < ALERT_DURATION:
+            if alert_state.active():
                 cv2.putText(annotated_frame, "ALERT!", (50, 50),
                             cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 3)
 
